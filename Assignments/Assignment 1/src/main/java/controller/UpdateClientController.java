@@ -4,6 +4,7 @@ import model.Account;
 import model.Client;
 import model.builder.AccountBuilder;
 import model.builder.ClientBuilder;
+import model.dto.AccountDTO;
 import model.validation.ClientValidator;
 import model.validation.Notification;
 import service.client.ClientService;
@@ -40,32 +41,16 @@ public class UpdateClientController {
     }
 
     private class UpdateClientButtonListener implements ActionListener {
-
         @Override
         public void actionPerformed(ActionEvent e) {
-            Client client = new ClientBuilder()
-                    .setId(updateClientView.getID())
-                    .setSurname(updateClientView.getSurname())
-                    .setFirstname(updateClientView.getFirstname())
-                    .setCnp(updateClientView.getCNP())
-                    .setIDCardNumber(updateClientView.getIDCard())
-                    .setAddress(updateClientView.getAddress())
-                    .build();
+            Notification<Boolean> res = clientService.update(updateClientView.getClientDTO());
 
-            ClientValidator clientValidator = new ClientValidator(client);
-
-            if(clientValidator.validate()) {
-                Notification<Boolean> res = clientService.update(client);
-                if(res.hasErrors()) {
-                    JOptionPane.showMessageDialog(updateClientView.getContentPane(), "An error has occurred in the database!");
-                }
-                else {
-                    updateView();
-                    JOptionPane.showMessageDialog(updateClientView.getContentPane(), "Client has been updated!");
-                }
+            if(res.hasErrors()) {
+                JOptionPane.showMessageDialog(updateClientView.getContentPane(), res.getFormattedErrors());
             }
             else {
-                JOptionPane.showMessageDialog(updateClientView.getContentPane(), clientValidator.getErrors().get(0));
+                updateView();
+                JOptionPane.showMessageDialog(updateClientView.getContentPane(), "Client has been updated!");
             }
         }
     }
@@ -84,28 +69,16 @@ public class UpdateClientController {
                 } else {
                     if (!debit && !credit) {
                         JOptionPane.showMessageDialog(updateClientView.getContentPane(), "The account can be either debit and credit!");
-                    } else if (debit) {
-                        Account account = new AccountBuilder()
-                                .setId(updateClientView.getAccountId())
-                                .setNumber(updateClientView.getAccountNumber())
-                                .setAmountOfMoney(updateClientView.getMoneyAccount())
-                                .setType(clientService.findAccountTypeByTitle(DEBIT))
-                                .build();
-                        Notification<Boolean> res = clientService.updateAccount(account);
-                        if (res.hasErrors()) {
-                            JOptionPane.showMessageDialog(updateClientView.getContentPane(), "An error has occurred in the database!");
-                        } else {
-                            updateView();
-                            JOptionPane.showMessageDialog(updateClientView.getContentPane(), "Account has been updated!");
-                        }
                     } else {
-                        Account account = new AccountBuilder()
-                                .setId(updateClientView.getAccountId())
-                                .setNumber(updateClientView.getAccountNumber())
-                                .setAmountOfMoney(updateClientView.getMoneyAccount())
-                                .setType(clientService.findAccountTypeByTitle(CREDIT))
-                                .build();
-                        Notification<Boolean> res = clientService.updateAccount(account);
+                        Notification<Boolean> res;
+                        AccountDTO accountDTO = updateClientView.getAccountDTO();
+                        if (debit) {
+                            accountDTO.setType(DEBIT);
+                        } else {
+                            accountDTO.setType(CREDIT);
+                        }
+                        res = clientService.updateAccount(accountDTO);
+
                         if (res.hasErrors()) {
                             JOptionPane.showMessageDialog(updateClientView.getContentPane(), "An error has occurred in the database!");
                         } else {
@@ -218,6 +191,7 @@ public class UpdateClientController {
             else {
                 clientService.deleteAccountByNumber(updateClientView.getAccountNumber());
                 updateView();
+                JOptionPane.showMessageDialog(updateClientView.getContentPane(), "Account has been deleted!");
             }
         }
     }
@@ -226,48 +200,32 @@ public class UpdateClientController {
         @Override
         public void actionPerformed(ActionEvent e) {
             if(updateClientView.getAccountIdString().isEmpty()) {
-                boolean debitSelection = updateClientView.getDebit();
-                boolean creditSelection = updateClientView.getCredit();
-                if(debitSelection && creditSelection)
+                boolean debit = updateClientView.getDebit();
+                boolean credit = updateClientView.getCredit();
+                if(debit && credit) {
                     JOptionPane.showMessageDialog(updateClientView.getContentPane(), "Account must be either debit or credit");
+                }
                 else {
-                    if (!debitSelection && !creditSelection) {
-                        JOptionPane.showMessageDialog(updateClientView.getContentPane(), "Account must be either debit or credit");
-                    } else if (debitSelection) {
-                        Account account = new AccountBuilder()
-                                .setType(clientService.findAccountTypeByTitle(DEBIT))
-                                .setNumber(UUID.randomUUID().toString())
-                                .setDateOfCreation(LocalDate.now())
-                                .setAmountOfMoney(updateClientView.getMoneyAccount())
-                                .build();
-
-                        Notification<Boolean> res = clientService.save(account);
-
-                        if(res.hasErrors()) {
-                            JOptionPane.showMessageDialog(updateClientView.getContentPane(), "An error has occurred in the database!");
-                        }
-                        else {
-                            clientService.addAccountToClient(account.getNumber(), updateClientView.getID());
-                        }
+                    if (!debit && !credit) {
+                        JOptionPane.showMessageDialog(updateClientView.getContentPane(), "The account can be either debit and credit!");
                     } else {
-                        Account account = new AccountBuilder()
-                                .setType(clientService.findAccountTypeByTitle(CREDIT))
-                                .setNumber(UUID.randomUUID().toString())
-                                .setDateOfCreation(LocalDate.now())
-                                .setAmountOfMoney(updateClientView.getMoneyAccount())
-                                .build();
-
-                        Notification<Boolean> res = clientService.save(account);
-
-                        if(res.hasErrors()) {
-                            JOptionPane.showMessageDialog(updateClientView.getContentPane(), "An error has occurred in the database!");
+                        Notification<Boolean> res;
+                        AccountDTO accountDTO = updateClientView.getAccountDTOWOId();
+                        if (debit) {
+                            accountDTO.setType(DEBIT);
+                        } else {
+                            accountDTO.setType(CREDIT);
                         }
-                        else {
-                            clientService.addAccountToClient(account.getNumber(), updateClientView.getID());
+                        res = clientService.saveAndAddToClient(accountDTO, updateClientView.getClientDTO());
+
+                        if (res.hasErrors()) {
+                            JOptionPane.showMessageDialog(updateClientView.getContentPane(), "An error has occurred in the database!");
+                        } else {
+                            updateView();
+                            JOptionPane.showMessageDialog(updateClientView.getContentPane(), "Account has been created!");
                         }
                     }
                 }
-                updateView();
             }
             else {
                 JOptionPane.showMessageDialog(updateClientView.getContentPane(), "The client already has an account");

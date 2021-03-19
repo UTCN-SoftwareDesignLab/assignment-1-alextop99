@@ -1,11 +1,7 @@
 package controller;
 
-import model.Role;
-import model.User;
-import model.builder.UserBuilder;
+import model.dto.UserDTO;
 import model.validation.Notification;
-import model.validation.UserValidator;
-import service.security.PasswordEncoder;
 import service.user.UserService;
 import view.AdministratorView;
 import view.CreateUserView;
@@ -35,46 +31,32 @@ public class CreateUserController {
         public void actionPerformed(ActionEvent e) {
             boolean employeeSelection = createUserView.getEmployee();
             boolean administratorSelection = createUserView.getAdministrator();
-            if(employeeSelection && administratorSelection)
+            if(employeeSelection && administratorSelection) {
                 JOptionPane.showMessageDialog(createUserView.getContentPane(), "User must be either administrator or employee!!");
+            }
             else {
                 Notification<Boolean> res = new Notification<>();
                 if(!employeeSelection && !administratorSelection) {
-                    JOptionPane.showMessageDialog(createUserView.getContentPane(), "User must be either administrator or employee!!");
                     res.addError("User must be either administrator or employee!!");
                 }
-                else if(administratorSelection) {
-                    res = getBooleanNotification(res, ADMINISTRATOR);
+                else {
+                    UserDTO userDTO = createUserView.getUserDTO();
+                    if(administratorSelection) {
+                        userDTO.setRole(ADMINISTRATOR);
+                    }
+                    else {
+                        userDTO.setRole(EMPLOYEE);
+                    }
+                    res = userService.save(userDTO);
+                }
+                if(!res.hasErrors()) {
+                    JOptionPane.showMessageDialog(createUserView.getContentPane(), "User created successfully");
                 }
                 else {
-                    res = getBooleanNotification(res, EMPLOYEE);
+                    JOptionPane.showMessageDialog(createUserView.getContentPane(), res.getFormattedErrors());
                 }
-                if(!res.hasErrors())
-                    JOptionPane.showMessageDialog(createUserView.getContentPane(), "User created successfully");
             }
         }
-    }
-
-    private Notification<Boolean> getBooleanNotification(Notification<Boolean> res, String roleName) {
-        Role userRole = new Role((long) -1, roleName);
-        User user = new UserBuilder()
-                .setUsername(createUserView.getUsername())
-                .setPassword(createUserView.getPassword())
-                .setRole(userRole)
-                .build();
-        UserValidator userValidator = new UserValidator(user);
-        if(userValidator.validate()) {
-            user.setPassword(PasswordEncoder.encodePassword(user.getPassword()));
-            res = userService.save(user);
-            if (res.hasErrors()) {
-                JOptionPane.showMessageDialog(createUserView.getContentPane(), res.getFormattedErrors());
-            }
-        }
-        else {
-            res.addError(userValidator.getErrors().get(0));
-            JOptionPane.showMessageDialog(createUserView.getContentPane(), userValidator.getErrors().get(0));
-        }
-        return res;
     }
 
     private class BackButtonListener implements ActionListener {

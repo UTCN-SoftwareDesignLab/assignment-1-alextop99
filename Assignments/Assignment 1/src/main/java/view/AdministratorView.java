@@ -129,16 +129,18 @@ public class AdministratorView extends JFrame {
 
     public LocalDate getStartDate() {
         Date startDate = (Date) dpStartDate.getModel().getValue();
-        if(startDate == null)
+        if(startDate == null) {
             return null;
+        }
         return startDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 
     }
 
     public LocalDate getEndDate() {
         Date endDate = (Date) dpEndDate.getModel().getValue();
-        if(endDate == null)
+        if(endDate == null) {
             return null;
+        }
         return endDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
     }
 

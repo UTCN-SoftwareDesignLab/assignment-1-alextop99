@@ -4,6 +4,7 @@ import model.Account;
 import model.Client;
 import model.builder.AccountBuilder;
 import model.builder.ClientBuilder;
+import model.dto.AccountDTO;
 import model.validation.ClientValidator;
 import model.validation.Notification;
 import service.client.ClientService;
@@ -15,6 +16,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.time.LocalDate;
 import java.util.UUID;
+
+import static database.Constants.AccountTypes.DEBIT;
 
 public class CreateClientController {
     private final CreateClientView createClientView;
@@ -40,71 +43,28 @@ public class CreateClientController {
                 Notification<Boolean> res;
 
                 if (!debitSelection && !creditSelection) {
-                    res = clientService.saveWOAccount(new ClientBuilder()
-                            .setSurname(createClientView.getSurname())
-                            .setFirstname(createClientView.getFirstname())
-                            .setIDCardNumber(createClientView.getIDCard())
-                            .setCnp(createClientView.getCNP())
-                            .setAddress(createClientView.getAddress())
-                            .build());
-
-
+                    res = clientService.saveWOAccount(createClientView.getClientDTO());
                 } else if (debitSelection) {
-                    Account account = new AccountBuilder()
-                            .setType(clientService.findAccountTypeByTitle("debit"))
-                            .setNumber(UUID.randomUUID().toString())
-                            .setDateOfCreation(LocalDate.now())
-                            .setAmountOfMoney(Double.valueOf(createClientView.getMoney()))
-                            .build();
+                    AccountDTO accountDTO = createClientView.getAccountDTO();
+                    accountDTO.setType(DEBIT);
 
-                    res = getBooleanNotification(account);
+                    res = clientService.save(createClientView.getClientDTO(), accountDTO);
 
                 } else {
-                    Account account = new AccountBuilder()
-                            .setType(clientService.findAccountTypeByTitle("credit"))
-                            .setNumber(UUID.randomUUID().toString())
-                            .setDateOfCreation(LocalDate.now())
-                            .setAmountOfMoney(Double.valueOf(createClientView.getMoney()))
-                            .build();
-                    res = getBooleanNotification(account);
+                    AccountDTO accountDTO = createClientView.getAccountDTO();
+                    accountDTO.setType(DEBIT);
+
+                    res = clientService.save(createClientView.getClientDTO(), accountDTO);
                 }
 
-                if(!res.hasErrors())
+                if(!res.hasErrors()) {
                     JOptionPane.showMessageDialog(createClientView.getContentPane(), "Client created successfully");
-            }
-        }
-    }
-
-    private Notification<Boolean> getBooleanNotification(Account account) {
-        Notification<Boolean> res;
-        res = clientService.save(account);
-
-        if(res.hasErrors()) {
-            JOptionPane.showMessageDialog(createClientView.getContentPane(), res.getFormattedErrors());
-        }
-        else {
-            Client client = new ClientBuilder()
-                    .setSurname(createClientView.getSurname())
-                    .setFirstname(createClientView.getFirstname())
-                    .setIDCardNumber(createClientView.getIDCard())
-                    .setCnp(createClientView.getCNP())
-                    .setAddress(createClientView.getAddress())
-                    .setAccount(account)
-                    .build();
-
-            ClientValidator clientValidator = new ClientValidator(client);
-
-            if(clientValidator.validate()) {
-                res = clientService.save(client);
-                if (res.hasErrors())
+                }
+                else {
                     JOptionPane.showMessageDialog(createClientView.getContentPane(), res.getFormattedErrors());
-            }
-            else {
-                res.addError(clientValidator.getErrors().get(0));
-                JOptionPane.showMessageDialog(createClientView.getContentPane(), clientValidator.getErrors().get(0));
+                }
             }
         }
-        return res;
     }
 
     private class BackButtonListener implements ActionListener {

@@ -45,8 +45,9 @@ public class LoginController {
                 JOptionPane.showMessageDialog(loginView.getContentPane(), loginNotification.getFormattedErrors());
             } else {
                 JOptionPane.showMessageDialog(loginView.getContentPane(), "Login successful!");
-                if (loginNotification.getResult().getRole().getRole().equals(ADMINISTRATOR))
+                if (loginNotification.getResult().getRole().getRole().equals(ADMINISTRATOR)) {
                     administratorView.setVisible();
+                }
                 else if (loginNotification.getResult().getRole().getRole().equals(EMPLOYEE)) {
                     Report report = new ReportBuilder()
                             .setId((long) -1)

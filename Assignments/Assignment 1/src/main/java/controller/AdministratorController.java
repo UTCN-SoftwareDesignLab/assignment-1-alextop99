@@ -3,6 +3,8 @@ package controller;
 import static database.Constants.Roles.ADMINISTRATOR;
 
 import model.Report;
+import model.validation.Notification;
+import service.report.ReportCSVGenerator;
 import service.report.ReportService;
 import service.user.UserService;
 import view.AdministratorView;
@@ -13,10 +15,7 @@ import view.UpdateUserView;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
 import java.time.LocalDate;
-import java.util.Arrays;
 import java.util.List;
 
 public class AdministratorController {
@@ -74,15 +73,13 @@ public class AdministratorController {
 
             if(cbSelection == -1)
                 JOptionPane.showMessageDialog(administratorView.getContentPane(), "Please select a valid ID!!");
+            else if(userService.getAllAdmins().size() == 1 && userService.findById(cbSelection).getResult().getRole().getRole().equals(ADMINISTRATOR)) {
+                JOptionPane.showMessageDialog(administratorView.getContentPane(), "You need at least one admin!!");
+            }
             else {
-                if(userService.getAllAdmins().size() == 1 && userService.findById(cbSelection).getResult().getRole().getRole().equals(ADMINISTRATOR)) {
-                    JOptionPane.showMessageDialog(administratorView.getContentPane(), "You need at least one admin!!");
-                }
-                else {
-                    userService.deleteUserById(cbSelection);
-                    updateAllDataInView();
-                    JOptionPane.showMessageDialog(administratorView.getContentPane(), "User with ID " + cbSelection.toString() + " has been deleted!!");
-                }
+                userService.deleteUserById(cbSelection);
+                updateAllDataInView();
+                JOptionPane.showMessageDialog(administratorView.getContentPane(), "User with ID " + cbSelection.toString() + " has been deleted!!");
             }
         }
     }
@@ -101,20 +98,35 @@ public class AdministratorController {
                 LocalDate startDate = administratorView.getStartDate();
                 LocalDate endDate = administratorView.getEndDate();
 
-                if(startDate == null)
-                    JOptionPane.showMessageDialog(administratorView.getContentPane(), "Please select a start Date!!");
-                else if(startDate.compareTo(LocalDate.now()) > 0)
-                        JOptionPane.showMessageDialog(administratorView.getContentPane(), "Please select a valid start Date!!");
-                else if(endDate == null)
-                            JOptionPane.showMessageDialog(administratorView.getContentPane(), "Please select a end Date!!");
-                else if(endDate.compareTo(LocalDate.now()) > 0)
-                    JOptionPane.showMessageDialog(administratorView.getContentPane(), "Please select a valid end Date!!");
-                else if(startDate.compareTo(endDate) > 0)
-                    JOptionPane.showMessageDialog(administratorView.getContentPane(), "Start date cannot be after end date!!");
-                else {
-                    List<Report> reports = reportService.getReportsForUser(cbSelection, startDate, endDate);
-                    generateCSV(reports, userService.findById(cbSelection).getResult().getUsername());
-                }
+                reportDateChecker(cbSelection, startDate, endDate);
+            }
+        }
+    }
+
+    private void reportDateChecker(Long cbSelection, LocalDate startDate, LocalDate endDate) {
+        if(startDate == null) {
+            JOptionPane.showMessageDialog(administratorView.getContentPane(), "Please select a start Date!!");
+        }
+        else if(startDate.compareTo(LocalDate.now()) > 0) {
+            JOptionPane.showMessageDialog(administratorView.getContentPane(), "Please select a valid start Date!!");
+        }
+        else if(endDate == null) {
+            JOptionPane.showMessageDialog(administratorView.getContentPane(), "Please select a end Date!!");
+        }
+        else if(endDate.compareTo(LocalDate.now()) > 0) {
+            JOptionPane.showMessageDialog(administratorView.getContentPane(), "Please select a valid end Date!!");
+        }
+        else if(startDate.compareTo(endDate) > 0) {
+            JOptionPane.showMessageDialog(administratorView.getContentPane(), "Start date cannot be after end date!!");
+        }
+        else {
+            List<Report> reports = reportService.getReportsForUser(cbSelection, startDate, endDate);
+            Notification<String> res = ReportCSVGenerator.generateCSV(reports, userService.findById(cbSelection).getResult().getUsername());
+            if(res.hasErrors()) {
+                JOptionPane.showMessageDialog(administratorView.getContentPane(), res.getFormattedErrors());
+            }
+            else {
+                JOptionPane.showMessageDialog(administratorView.getContentPane(), res.getResult());
             }
         }
     }
@@ -132,27 +144,5 @@ public class AdministratorController {
         administratorView.updateAllDataInView(userService.getAllUsers(), userService.getIdList());
     }
 
-    private void generateCSV(List<Report> reports, String username) {
-        List<String> headers= Arrays.asList("Username","Action","Action Date");
-        StringBuilder objectsCommaSeparated = new StringBuilder(String.join(",", headers));
-        objectsCommaSeparated.append("\n");
 
-        for(Report report : reports) {
-            List<String> contents = Arrays.asList(username,report.getAction(),report.getDate().toString());
-            objectsCommaSeparated.append(String.join(",", contents));
-            objectsCommaSeparated.append("\n");
-        }
-
-        try {
-            String filename = "Report_" + username + "_" + LocalDate.now().toString() +".csv";
-            PrintWriter out = new PrintWriter(filename);
-            out.write(objectsCommaSeparated.toString());
-            out.close();
-            JOptionPane.showMessageDialog(administratorView.getContentPane(), "Report has been generated successfully!!");
-        }
-        catch (FileNotFoundException e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(administratorView.getContentPane(), "An error has occurred while creating the report!!");
-        }
-    }
 }

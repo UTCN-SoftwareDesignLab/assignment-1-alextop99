@@ -1,5 +1,7 @@
 package view;
 
+import model.dto.UserDTO;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
@@ -55,6 +57,13 @@ public class CreateUserView extends JFrame{
         tfPassword.setText("");
         chbEmployee.setSelected(false);
         chbAdministrator.setSelected(false);
+    }
+
+    public UserDTO getUserDTO() {
+        return new UserDTO(
+                tfUsername.getText(),
+                tfPassword.getText()
+        );
     }
 
     public String getUsername() { return tfUsername.getText();}

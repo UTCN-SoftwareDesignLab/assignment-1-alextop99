@@ -136,7 +136,7 @@ public class AccountRepositoryMySQL implements AccountRepository{
 
     private Account getAccount(Statement statement, String fetchRoleSql) throws SQLException {
         ResultSet accountResultSet = statement.executeQuery(fetchRoleSql);
-        if( accountResultSet.next())
+        if( accountResultSet.next()) {
             return new AccountBuilder()
                     .setId(accountResultSet.getLong("id"))
                     .setNumber(accountResultSet.getString("number"))
@@ -144,8 +144,10 @@ public class AccountRepositoryMySQL implements AccountRepository{
                     .setAmountOfMoney(accountResultSet.getDouble("money"))
                     .setDateOfCreation(accountResultSet.getDate("dateOfCreation").toLocalDate())
                     .build();
-        else
+        }
+        else {
             return null;
+        }
     }
 
     @Override

@@ -1,6 +1,7 @@
 package view;
 
 import model.User;
+import model.dto.UserDTO;
 
 import javax.swing.*;
 import java.awt.*;
@@ -76,6 +77,14 @@ public class UpdateUserView extends JFrame{
         tfPassword.setText("");
         chbEmployee.setSelected(false);
         chbAdministrator.setSelected(false);
+    }
+
+    public UserDTO getUserDTO() {
+        return new UserDTO(
+                Long.valueOf(lbIdVal.getText()),
+                tfUsername.getText(),
+                tfPassword.getText()
+        );
     }
 
     public Long getID() {return Long.valueOf(lbIdVal.getText());}

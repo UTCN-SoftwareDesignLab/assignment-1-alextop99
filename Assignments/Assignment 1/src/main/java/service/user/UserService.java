@@ -2,6 +2,7 @@ package service.user;
 
 import model.Client;
 import model.User;
+import model.dto.UserDTO;
 import model.validation.Notification;
 
 import java.util.List;
@@ -20,7 +21,11 @@ public interface UserService {
 
     Notification<Boolean> save(User user);
 
+    Notification<Boolean> save(UserDTO userDTO);
+
     Notification<Boolean> update(User user);
+
+    Notification<Boolean> update(UserDTO userDTO);
 
     Notification<Boolean> updateWOPassword(User user);
 }

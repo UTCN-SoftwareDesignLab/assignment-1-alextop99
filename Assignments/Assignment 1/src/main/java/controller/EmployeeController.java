@@ -59,8 +59,9 @@ public class EmployeeController {
         @Override
         public void actionPerformed(ActionEvent e) {
             Long cbSelection = employeeView.getCbSelectionItem();
-            if(cbSelection == -1)
+            if(cbSelection == -1) {
                 JOptionPane.showMessageDialog(employeeView.getContentPane(), "Please select a valid ID!!");
+            }
             else {
                 Report report = new ReportBuilder()
                         .setId((long) -1)
@@ -82,12 +83,14 @@ public class EmployeeController {
         public void actionPerformed(ActionEvent e) {
             Long cbSelection = employeeView.getCbSelectionItem();
 
-            if(cbSelection == -1)
+            if(cbSelection == -1) {
                 JOptionPane.showMessageDialog(employeeView.getContentPane(), "Please select a valid ID!!");
+            }
             else {
                 Client client = clientService.findById(cbSelection).getResult();
-                if(client.getAccount() != null)
+                if(client.getAccount() != null) {
                     clientService.deleteAccountByNumber(client.getAccount().getNumber());
+                }
                 clientService.deleteClientById(cbSelection);
                 Report report = new ReportBuilder()
                         .setId((long) -1)

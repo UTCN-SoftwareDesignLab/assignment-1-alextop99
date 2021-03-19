@@ -1,5 +1,8 @@
 package view;
 
+import model.dto.AccountDTO;
+import model.dto.ClientDTO;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
@@ -83,6 +86,22 @@ public class CreateClientView extends JFrame{
         chbDebit.setSelected(false);
         chbCredit.setSelected(false);
         tfMoney.setText("0.0");
+    }
+
+    public ClientDTO getClientDTO() {
+        return new ClientDTO(
+                tfSurname.getText(),
+                tfFirstname.getText(),
+                tfIDCard.getText(),
+                tfCNP.getText(),
+                tfAddress.getText()
+        );
+    }
+
+    public AccountDTO getAccountDTO() {
+        return new AccountDTO(
+                Double.valueOf(tfMoney.getText())
+        );
     }
 
     public String getSurname() { return tfSurname.getText();}

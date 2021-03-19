@@ -1,6 +1,8 @@
 package view;
 
 import model.Client;
+import model.dto.AccountDTO;
+import model.dto.ClientDTO;
 
 import javax.swing.*;
 import java.awt.*;
@@ -188,6 +190,32 @@ public class UpdateClientView extends JFrame {
         tfMoneyDW.setText("0.0");
         tfMoneyTf.setText("0.0");
         tfAccountTf.setText("");
+    }
+
+    public ClientDTO getClientDTO() {
+        return new ClientDTO(
+                Long.valueOf(lbIdVal.getText()),
+                tfSurname.getText(),
+                tfFirstname.getText(),
+                tfIDCard.getText(),
+                tfCNP.getText(),
+                tfAddress.getText()
+        );
+    }
+
+    public AccountDTO getAccountDTO() {
+        return new AccountDTO(
+                Long.valueOf(lbAccountIdVal.getText()),
+                lbAccountNumberVal.getText(),
+                Double.valueOf(tfMoneyAccount.getText())
+        );
+    }
+
+    public AccountDTO getAccountDTOWOId() {
+        return new AccountDTO(
+                lbAccountNumberVal.getText(),
+                Double.valueOf(tfMoneyAccount.getText())
+        );
     }
 
     public Long getID() {return Long.valueOf(lbIdVal.getText());}
