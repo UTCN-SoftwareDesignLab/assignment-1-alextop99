@@ -8,7 +8,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import repository.security.RoleRepository;
-import repository.user.UserRepository;
 
 import java.util.List;
 
